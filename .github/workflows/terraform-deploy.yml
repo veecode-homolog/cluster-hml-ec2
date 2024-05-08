@@ -1,0 +1,112 @@
+name: Create
+
+on:
+  workflow_dispatch:
+env:
+  PORT: 6550
+  USERNAME: ec2-user   
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - uses: actions/cache@v3
+        with:
+          path: |
+            .terraform/**
+            .terraform.lock.hcl
+            plan.cache
+          key: terraform-lock-${{ github.event.workflow_run.head_branch }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform init
+          terraform plan -no-color -out plan_cache.json 
+      - name: Terraform apply
+        run: terraform apply -input=false -no-color -auto-approve plan_cache.json
+  kubeconfig:
+    runs-on: ubuntu-latest
+    needs: apply
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - name: Write secret to file
+        run: |
+          echo "${{ secrets.KEYPAIR }}" > cert.pem
+          chmod 600 cert.pem
+          
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Aguarde a Cluster ficar ativo
+        run: |
+          HOST=`aws ec2 describe-instances --filters 'Name=tag:Name,Values=cluster-hml-ec2'   --output text --query 'Reservations[*].Instances[*].PublicIpAddress'`
+          while ! nc -z $HOST $PORT; do
+            echo "Aguardando Cluster ficar Ready..."
+            sleep 2
+          done
+          echo "Cluster Ready!"
+          echo "Host=$HOST" >> $GITHUB_ENV
+
+      - name: Generate kube config with k3d
+        run: |
+           ssh -i ./cert.pem -o StrictHostKeyChecking=no $USERNAME@${{  env.Host }} "mkdir -p .kube && k3d kubeconfig get k3s > ~/.kube/config"
+ 
+      - name: Download kube config
+        run: |
+           mkdir -p ~/.kube
+           scp -i ./cert.pem -o StrictHostKeyChecking=no $USERNAME@${{ env.Host }}:~/.kube/config ~/.kube/config
+ 
+      - name: Print downloaded config
+        run: |  
+          CERTIFICATE=`cat  ~/.kube/config |grep certificate-authority-data `
+          sed -i "s|$CERTIFICATE|    insecure-skip-tls-verify: true|g" ~/.kube/config
+          sed -i "s|0.0.0.0|${{ env.Host }}|g" ~/.kube/config
+
+ 
+      - name: Upload kube config
+        uses: actions/upload-artifact@v3
+        with:
+          name: kube-config
+          path: ~/.kube/config
+
+      - name: Write Catalogo Info
+        run: |
+          yq e '.metadata.environment.public_ip = "${{ env.Host }}"' -i catalog-info.yaml
+          cat ./catalog-info.yaml
+
+      - name: Temporarily disable branch protection
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access_token: ${{ secrets.API_TOKEN_GITHUB }}
+          branch: ${{ github.event.repository.default_branch }}
+
+      - name: Publish Catalogo Info
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          destination_branch: ${{ github.event.repository.default_branch }}
+          source_file: './catalog-info.yaml'
+          destination_repo: ${{ github.repository }}
+          destination_folder: '/'
+          commit_message: Update catalog-info.yaml in the same repo
+          user_name: ${{ secrets.GH_USERNAME }}
+          user_email: ${{ secrets.GH_EMAIL }}
+          git_server: github.com
