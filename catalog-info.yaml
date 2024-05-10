@@ -9,6 +9,7 @@ metadata:
   annotations:
     github.com/project-slug: veecode-homolog/cluster-hml-ec2
     backstage.io/techdocs-ref: dir:.
+    backstage.io/kubernetes-id: cluster-hml-ec2
     github.com/workflows: terraform-deploy.yml,start-instance.yml,stop-instance.yml,terraform-destroy.yml,deploy-dashboard
     cluster/instructions: "ssh -i ./key-pair.pem -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} \n\"mkdir -p .kube && k3d kubeconfig get ${CLUSTER_NAME} > ~/.kube/config\"\nscp -i ./key-pair.pem ${EC2_USER}@${EC2_HOST}:~/.kube/config ./config\nyq e 'del(.clusters[0].cluster.certificate-authority-data)' -i ~/.kube/config\nyq e '.clusters[0].cluster.insecure-skip-tls-verify=true' config -i\nyq e '.clusters[0].cluster.server = \"https://${EC2_HOST}:38517\"' config -i\n"
 spec:
