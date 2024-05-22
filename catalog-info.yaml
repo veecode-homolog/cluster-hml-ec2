@@ -5,7 +5,7 @@ metadata:
   environment:
     cluster_type: ec2
     domain: vkpr.platform.vee.codes
-    public_ip: 52.2.22.95
+    public_ip: 35.175.60.138
   annotations:
     github.com/project-slug: veecode-homolog/cluster-hml-ec2
     backstage.io/techdocs-ref: dir:.
