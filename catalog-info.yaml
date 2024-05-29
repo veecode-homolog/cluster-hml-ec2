@@ -11,7 +11,7 @@ metadata:
     backstage.io/techdocs-ref: dir:.
     backstage.io/kubernetes-id: cluster-hml-ec2
     github.com/workflows: terraform-deploy.yml,start-instance.yml,stop-instance.yml,terraform-destroy.yml,deploy-dashboard
-    cluster/instructions: "\n  # Run the following commands to import the kubeconfig:\n  ssh -i ./devportal-prod-develop.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST \"mkdir -p .kube && k3d kubeconfig get $CLUSTER_NAME > ~/.kube/config\"\n  scp -i ./devportal-prod-develop.pem $EC2_USER@$EC2_HOST:~/.kube/config ~/.kube/config\n  yq -e 'del(.clusters[0].cluster.certificate-authority-data) | .clusters[0].cluster.insecure-skip-tls-verify=true | .clusters[].cluster.server |= sub(\"0.0.0.0\", strenv(EC2_HOST))' -i ~/.kube/config\n"
+    cluster/instructions: "# Run the following commands to import the kubeconfig:\n  ssh -i ./cert.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST \"mkdir -p .kube && k3d kubeconfig get $CLUSTER_NAME > ~/.kube/config\"\n  scp -i ./cert.pem $EC2_USER@$EC2_HOST:~/.kube/config ~/.kube/config\n  yq -e 'del(.clusters[0].cluster.certificate-authority-data) | .clusters[0].cluster.insecure-skip-tls-verify=true | .clusters[].cluster.server |= sub(\"0.0.0.0\", strenv(EC2_HOST))' -i ~/.kube/config\n"
 spec:
   type: ec2
   lifecycle: experimental
