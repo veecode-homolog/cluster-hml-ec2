@@ -88,10 +88,9 @@ jobs:
       - name: Write Catalogo Info
         run: |
           yq e '.metadata.environment.public_ip = "${{ env.Host }}"' -i catalog-info.yaml
-          yq -e '.metadata.annotations["cluster/instructions"] = "
-            # Run the following commands to import the kubeconfig:
-            ssh -i ./devportal-prod-develop.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST \"mkdir -p .kube && k3d kubeconfig get $CLUSTER_NAME > ~/.kube/config\"
-            scp -i ./devportal-prod-develop.pem $EC2_USER@$EC2_HOST:~/.kube/config ~/.kube/config
+          yq -e '.metadata.annotations["cluster/instructions"] = "# Run the following commands to import the kubeconfig:
+            ssh -i ./cert.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST \"mkdir -p .kube && k3d kubeconfig get $CLUSTER_NAME > ~/.kube/config\"
+            scp -i ./cert.pem $EC2_USER@$EC2_HOST:~/.kube/config ~/.kube/config
             yq -e '\''del(.clusters[0].cluster.certificate-authority-data) | .clusters[0].cluster.insecure-skip-tls-verify=true | .clusters[].cluster.server |= sub(\"0.0.0.0\", strenv(EC2_HOST))'\'' -i ~/.kube/config
           "' -i catalog-info.yaml
           cat ./catalog-info.yaml
