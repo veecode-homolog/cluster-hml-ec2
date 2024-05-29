@@ -88,6 +88,12 @@ jobs:
       - name: Write Catalogo Info
         run: |
           yq e '.metadata.environment.public_ip = "${{ env.Host }}"' -i catalog-info.yaml
+          yq e '.metadata.annotations.cluster/instructions="
+          #Run the following commands to import the kubeconfig:
+          ssh -i ./cert.pem -o StrictHostKeyChecking=no ${{ env.USERNAME }}@${{ env.Host }} \"mkdir -p .kube && k3d kubeconfig get k3s > ~/.kube/config
+          scp -i ./cert.pem ${{ env.USERNAME }}@$${{ env.Host }}:~/.kube/config ~/.kube/config
+          yq -e '\''del(.clusters[0].cluster.certificate-authority-data) | .clusters[0].cluster.insecure-skip-tls-verify=true | .clusters[].cluster.server |= sub(\"0.0.0.0\", strenv(Host))'\'' -i ~/.kube/config"
+          ' -i catalog-info.yaml
           cat ./catalog-info.yaml
 
       - name: Temporarily disable branch protection
