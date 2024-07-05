@@ -1,7 +1,7 @@
 apiVersion: veecode.backstage.io/v1alpha1
 kind: Infracost
 metadata:
-  name: eks-plugin-infracost
+  name: cluster-hml-ec2
   annotations:
    backstage.io/techdocs-ref: dir:.
 spec:
