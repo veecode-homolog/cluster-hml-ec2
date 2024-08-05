@@ -12,15 +12,14 @@ metadata:
     backstage.io/kubernetes-id: cluster-hml-ec2
     infracost/project: cluster-hml-ec2
     github.com/workflows: terraform-deploy.yml,start-instance.yml,stop-instance.yml,terraform-destroy.yml,deploy-dashboard
-    cluster/instructions: "# Run the following commands to import the kubeconfig:\n  ssh -i ./cert.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST \"mkdir -p .kube && k3d kubeconfig get $CLUSTER_NAME > ~/.kube/config\"\n  scp -i ./cert.pem $EC2_USER@$EC2_HOST:~/.kube/config ~/.kube/config\n  yq -e 'del(.clusters[0].cluster.certificate-authority-data) | .clusters[0].cluster.insecure-skip-tls-verify=true | .clusters[].cluster.server |= sub(\"0.0.0.0\", strenv(EC2_HOST))' -i ~/.kube/config\n"
-    
-#    kubernetes.io/secret-name: 'cluster-hml-ec2-secret'
-#    kubernetes.io/secret-namespace: 'vkpr'
-#    kubernetes.io/auth-provider: 'custom'
-#    kubernetes.io/api-server: "https://34.192.236.45:6550"
-#    kubernetes.io/skip-tls-verify: "true"
-#    kubernetes.io/skip-metrics-lookup: "false"    
-#    veecode/cluster-name: "cluster-hml-ec2"    
+    cluster/instructions: "# Run the following commands to import the kubeconfig:\n  ssh -i ./cert.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST \"mkdir -p .kube && k3d kubeconfig get $CLUSTER_NAME > ~/.kube/config\"\n  scp -i ./cert.pem $EC2_USER@$EC2_HOST:~/.kube/config ~/.kube/config\n  yq -e 'del(.clusters[0].cluster.certificate-authority-data) | .clusters[0].cluster.insecure-skip-tls-verify=true | .clusters[].cluster.server |= sub(\"0.0.0.0\", strenv(EC2_HOST))' -i ~/.kube/config\n" 
+    kubernetes.io/secret-name: 'cluster-hml-ec2-secret'
+    kubernetes.io/secret-namespace: 'vkpr'
+    kubernetes.io/auth-provider: 'custom'
+    kubernetes.io/api-server: "https://34.192.236.45:6550"
+    kubernetes.io/skip-tls-verify: "true"
+    kubernetes.io/skip-metrics-lookup: "false"    
+    veecode/cluster-name: "cluster-hml-ec2"    
 spec:
   type: ec2
   lifecycle: experimental
