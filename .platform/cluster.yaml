@@ -5,7 +5,7 @@ metadata:
   environment:
     cluster_type: ec2
     domain: vkpr.platform.vee.codes
-    public_ip: 34.192.236.45
+    public_ip: 54.211.50.157
   annotations:
     github.com/project-slug: veecode-homolog/cluster-hml-ec2
     backstage.io/techdocs-ref: dir:..
@@ -16,7 +16,7 @@ metadata:
     kubernetes.io/secret-name: 'cluster-hml-ec2-secret'
     kubernetes.io/secret-namespace: 'vkpr'
     kubernetes.io/auth-provider: 'custom'
-    kubernetes.io/api-server: "https://34.192.236.45:6550"
+    kubernetes.io/api-server: "https://54.211.50.157:6550"
     kubernetes.io/skip-tls-verify: "true"
     kubernetes.io/skip-metrics-lookup: "false"    
     veecode/cluster-name: "cluster-hml-ec2"    
